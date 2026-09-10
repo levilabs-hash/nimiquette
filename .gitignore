@@ -8,8 +8,8 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # Dependencies and build output
-node_modules
-dist
+node_modules/
+dist/
 dist-ssr
 
 # Environment and local secrets
@@ -21,6 +21,10 @@ credentials.json
 secrets.json
 *.local
 
+# Cursor / local development files
+.agents/
+skills-lock.json
+
 # OS files
 .DS_Store
 Thumbs.db
@@ -28,8 +32,7 @@ Desktop.ini
 ehthumbs.db
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
+.vscode/
 .idea
 *.suo
 *.ntvs*
