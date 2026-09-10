@@ -10,7 +10,6 @@ import {
   explainProviderFailure,
   isUserRejection,
   resetProviderConnection,
-  toUserMessage,
   unwrapProviderResult,
 } from './nimiq/provider'
 import { decodeReceiptPayload, isAcknowledgmentBound, type ReceiptV1 } from './receipt/model'
@@ -32,9 +31,7 @@ const TRAIL_STEPS: { id: TrailStep; label: string }[] = [
 const isConnecting = ref(true)
 const isReady = ref(false)
 const providerStatus = ref<ProviderStatus>('connecting')
-const errorMessage = ref<string | null>(null)
 const consensusEstablished = ref<boolean | null>(null)
-const blockNumber = ref<number | null>(null)
 const walletStateError = ref<string | null>(null)
 
 const consentStatus = ref<ConsentStatus>('idle')
@@ -82,7 +79,7 @@ const walletSummary = computed(() => {
 
 const walletPill = computed(() => {
   if (isConnecting.value || providerStatus.value === 'connecting') {
-    return { state: 'connecting', label: 'Connecting' }
+    return { state: 'connecting', label: 'Looking for Nimiq Pay' }
   }
 
   if (providerStatus.value === 'unavailable') {
@@ -134,18 +131,14 @@ const walletHint = computed(() => {
   }
 
   if (providerStatus.value === 'unavailable') {
-    return 'You can still look around here. To send or acknowledge, open Mini Apps in Nimiq Pay and enter this app’s network URL.'
+    return 'Nimiquette needs to run inside Nimiq Pay to connect a wallet. Open it from Mini Apps, then you can send or acknowledge a payment.'
   }
 
   return null
 })
 
-const showWalletDetails = computed(() => (
-  isReady.value || Boolean(errorMessage.value && providerStatus.value === 'unavailable')
-))
-
 const showConnectButton = computed(() => (
-  providerStatus.value !== 'unavailable' && !walletConnected.value
+  providerStatus.value === 'ready' && !walletConnected.value
 ))
 
 const homepageReceiptState = computed(() => {
@@ -161,28 +154,59 @@ const homepageReceiptState = computed(() => {
 })
 
 const trailStep = computed<TrailStep>(() => {
-  if (view.value !== 'send') {
-    return receipt.value && isAcknowledgmentBound(receipt.value) ? 'receipt' : 'acknowledgment'
+  if (view.value === 'send') {
+    if (sendPhase.value === 'sent') {
+      return 'acknowledgment'
+    }
+
+    return sendPhase.value
   }
 
-  if (sendPhase.value === 'sent') {
+  if (receipt.value && isAcknowledgmentBound(receipt.value)) {
+    return 'receipt'
+  }
+
+  if (receipt.value) {
     return 'acknowledgment'
   }
 
-  return sendPhase.value
+  return 'receipt'
+})
+
+const trailCompletedCount = computed(() => {
+  if (view.value === 'send') {
+    if (sendPhase.value === 'sent') {
+      return 2
+    }
+
+    if (sendPhase.value === 'payment') {
+      return 1
+    }
+
+    return 0
+  }
+
+  if (!receipt.value) {
+    return 0
+  }
+
+  if (isAcknowledgmentBound(receipt.value)) {
+    return 3
+  }
+
+  return 2
 })
 
 function trailState(step: TrailStep): 'done' | 'current' | 'upcoming' {
   const order: TrailStep[] = ['intent', 'payment', 'acknowledgment', 'receipt']
-  const current = order.indexOf(trailStep.value)
   const index = order.indexOf(step)
 
-  if (index < current) {
-    return 'done'
+  if (step === trailStep.value) {
+    return 'current'
   }
 
-  if (index === current) {
-    return 'current'
+  if (index < trailCompletedCount.value) {
+    return 'done'
   }
 
   return 'upcoming'
@@ -255,9 +279,7 @@ async function initializeProvider(): Promise<void> {
   isConnecting.value = true
   isReady.value = false
   providerStatus.value = 'connecting'
-  errorMessage.value = null
   consensusEstablished.value = null
-  blockNumber.value = null
   walletStateError.value = null
 
   try {
@@ -266,21 +288,19 @@ async function initializeProvider(): Promise<void> {
     providerStatus.value = 'ready'
 
     try {
-      const [consensus, height] = await Promise.all([
+      const [consensus] = await Promise.all([
         nimiq.isConsensusEstablished(),
         nimiq.getBlockNumber(),
       ])
 
       consensusEstablished.value = consensus
-      blockNumber.value = height
     }
     catch {
       walletStateError.value = 'Could not check whether the wallet has network consensus. Nimiq Pay will still ask you to approve each action.'
     }
   }
-  catch (error) {
+  catch {
     providerStatus.value = 'unavailable'
-    errorMessage.value = toUserMessage(error)
   }
   finally {
     isConnecting.value = false
@@ -408,43 +428,11 @@ async function connectWallet(): Promise<void> {
         v-else-if="showConnectButton"
         type="button"
         class="action"
-        :disabled="!isReady || consentStatus === 'requesting'"
+        :disabled="consentStatus === 'requesting'"
         @click="connectWallet"
       >
         {{ consentStatus === 'requesting' ? 'Waiting for approval…' : 'Connect Nimiq wallet' }}
       </button>
-
-      <details v-if="showWalletDetails" class="wallet-details">
-        <summary>
-          <span class="details-copy">
-            <span class="details-title">Wallet details</span>
-            <span class="details-hint">Consensus, block height, and address</span>
-          </span>
-        </summary>
-        <p v-if="errorMessage && providerStatus === 'unavailable'" class="detail">
-          {{ errorMessage }}
-        </p>
-        <dl v-if="isReady" class="facts">
-          <div>
-            <dt>Connection</dt>
-            <dd>{{ walletConnected ? 'Connected' : 'Not connected' }}</dd>
-          </div>
-          <div>
-            <dt>Consensus</dt>
-            <dd>{{ consensusEstablished === null ? 'Checking…' : consensusEstablished ? 'Established' : 'Syncing' }}</dd>
-          </div>
-          <div>
-            <dt>Block height</dt>
-            <dd>{{ blockNumber === null ? 'Checking…' : blockNumber.toLocaleString() }}</dd>
-          </div>
-        </dl>
-        <ul v-if="accounts.length > 0" class="accounts">
-          <li v-for="account in accounts" :key="account">
-            <span class="account-label">Nimiq address</span>
-            <span class="account-value">{{ account }}</span>
-          </li>
-        </ul>
-      </details>
     </section>
 
     <PaymentIntentFlow

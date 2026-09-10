@@ -522,7 +522,6 @@ dd {
   line-height: 1.45;
 }
 
-.wallet-details,
 .receipt-details,
 .signature-details,
 .share-link-details {
@@ -531,7 +530,6 @@ dd {
   border-top: 1px solid var(--line);
 }
 
-.wallet-details summary,
 .receipt-details summary,
 .signature-details summary,
 .share-link-details summary {
@@ -545,7 +543,6 @@ dd {
   list-style: none;
 }
 
-.wallet-details summary::-webkit-details-marker,
 .receipt-details summary::-webkit-details-marker,
 .signature-details summary::-webkit-details-marker,
 .share-link-details summary::-webkit-details-marker {
@@ -570,7 +567,6 @@ dd {
   line-height: 1.35;
 }
 
-.wallet-details summary::after,
 .receipt-details summary::after,
 .signature-details summary::after,
 .share-link-details summary::after {
@@ -585,7 +581,6 @@ dd {
   transform-origin: 50% 50%;
 }
 
-.wallet-details[open] summary::after,
 .receipt-details[open] summary::after,
 .signature-details[open] summary::after,
 .share-link-details[open] summary::after {
@@ -593,7 +588,6 @@ dd {
   transform: rotate(225deg);
 }
 
-.wallet-details summary:focus-visible,
 .receipt-details summary:focus-visible,
 .signature-details summary:focus-visible,
 .share-link-details summary:focus-visible {
