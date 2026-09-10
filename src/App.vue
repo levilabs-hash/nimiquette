@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import PaymentIntentFlow from './components/PaymentIntentFlow.vue'
 import ReceiptPreview from './components/ReceiptPreview.vue'
 import SharedReceipt from './components/SharedReceipt.vue'
@@ -43,6 +43,7 @@ const receipt = ref<ReceiptV1 | null>(null)
 const receiptInput = ref('')
 const receiptInputError = ref<string | null>(null)
 const sendPhase = ref<SendPhase>('intent')
+const addressCopyState = ref<'idle' | 'copied' | 'error'>('idle')
 
 const senderAddress = computed(() => {
   for (const account of accounts.value) {
@@ -140,6 +141,30 @@ const walletHint = computed(() => {
 const showConnectButton = computed(() => (
   providerStatus.value === 'ready' && !walletConnected.value
 ))
+
+const showAddressCopy = computed(() => (
+  walletConnected.value && senderAddress.value !== null
+))
+
+watch(showAddressCopy, (visible) => {
+  if (!visible) {
+    addressCopyState.value = 'idle'
+  }
+})
+
+async function copyConnectedAddress(): Promise<void> {
+  if (!senderAddress.value) {
+    return
+  }
+
+  try {
+    await navigator.clipboard.writeText(senderAddress.value)
+    addressCopyState.value = 'copied'
+  }
+  catch {
+    addressCopyState.value = 'error'
+  }
+}
 
 const homepageReceiptState = computed(() => {
   if (!receipt.value) {
@@ -409,8 +434,23 @@ async function connectWallet(): Promise<void> {
         <span class="status" :data-state="walletPill.state">{{ walletPill.label }}</span>
       </div>
 
-      <p class="wallet-summary" :class="{ break: walletConnected }">
+      <div v-if="showAddressCopy" class="wallet-address-row">
+        <p class="wallet-summary">{{ walletSummary }}</p>
+        <button
+          type="button"
+          class="paste-action"
+          aria-label="Copy connected wallet address"
+          @click="copyConnectedAddress"
+        >
+          {{ addressCopyState === 'copied' ? 'Copied' : 'Copy' }}
+        </button>
+      </div>
+      <p v-else class="wallet-summary" :class="{ break: walletConnected }">
         {{ walletSummary }}
+      </p>
+
+      <p v-if="showAddressCopy && addressCopyState === 'error'" class="detail" data-tone="calm">
+        Could not copy the address. Copy it from Nimiq Pay instead.
       </p>
 
       <p v-if="walletHint" class="detail" data-tone="calm">

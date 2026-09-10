@@ -560,6 +560,17 @@ dd {
   line-height: 1.45;
 }
 
+.wallet-address-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.wallet-address-row .wallet-summary {
+  min-width: 0;
+}
+
 .receipt-details,
 .signature-details,
 .share-link-details {
