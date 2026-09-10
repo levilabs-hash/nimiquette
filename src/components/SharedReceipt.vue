@@ -89,7 +89,7 @@ function ackBlocker(): string | null {
   }
 
   if (networkNotReady.value) {
-    return 'The wallet is still syncing with the Nimiq network. Wait until consensus is established, then acknowledge.'
+    return 'The wallet is still syncing. Wait until it is ready, then acknowledge.'
   }
 
   if (!matchingRecipient.value) {
@@ -177,18 +177,19 @@ async function acknowledge(): Promise<void> {
     </div>
 
     <p
+      v-if="!acknowledgmentBound"
       class="status-banner"
-      :data-state="acknowledgmentBound ? 'connected' : receipt.ack ? 'error' : 'idle'"
+      :data-state="receipt.ack ? 'error' : 'idle'"
     >
-      {{ acknowledgmentBound ? 'Acknowledged' : receipt.ack ? 'Acknowledgment does not match' : 'Acknowledgment pending' }}
+      {{ receipt.ack ? 'Acknowledgment does not match' : 'Waiting for the recipient to acknowledge' }}
     </p>
 
     <p class="receipt-hero">
-      {{ receipt.payment.intent }}
-      <span>{{ amountNim }} NIM</span>
+      <span class="hero-kicker">{{ receipt.payment.intent }}</span>
+      <span class="hero-amount">{{ amountNim }} <span>NIM</span></span>
     </p>
     <p class="message">
-      This receipt records why the payment was sent and whether the recipient acknowledged it.
+      {{ acknowledgmentBound ? 'The recipient acknowledged this payment.' : 'Share this receipt so the recipient can acknowledge it.' }}
     </p>
     <p class="quiet-note">
       Nimiquette does not fetch or independently confirm this transaction from the chain.
@@ -262,13 +263,9 @@ async function acknowledge(): Promise<void> {
             Signed with Nimiq Pay. The signature is bound to this payment’s hash and details.
           </p>
           <dl class="facts">
-            <div>
-              <dt>Status</dt>
-              <dd>Acknowledged</dd>
-            </div>
             <div class="stack">
               <dt>Signing wallet</dt>
-              <dd class="break">{{ receipt.ack.address }}</dd>
+              <dd class="break">{{ shortenNimiqAddress(receipt.ack.address) }}</dd>
             </div>
           </dl>
         </div>
@@ -297,10 +294,10 @@ async function acknowledge(): Promise<void> {
           This acknowledgment does not match this payment, so it is not shown as valid.
         </p>
         <p v-else-if="matchingRecipient" class="message">
-          This connected wallet is the intended recipient. Nimiq Pay will ask you to sign a message for this payment. Nimiquette never sees private keys.
+          Nimiq Pay will ask you to sign. Nimiquette never sees private keys.
         </p>
         <p v-else class="message">
-          If this wallet is the recipient, tap below. Nimiq Pay will ask you to sign a message that includes this transaction hash. Nimiquette never sees private keys.
+          Connect the recipient wallet, then acknowledge. Nimiquette never sees private keys.
         </p>
 
         <p v-if="ackBlocker()" class="detail" data-tone="calm">

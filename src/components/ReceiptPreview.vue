@@ -64,8 +64,8 @@ const matchLabel = computed(() => {
     </div>
 
     <p class="result-hero">
-      {{ intent }}
-      <span>{{ amountNim }} NIM</span>
+      <span class="hero-kicker">{{ intent }}</span>
+      <span class="hero-amount">{{ amountNim }} <span>NIM</span></span>
     </p>
 
     <p class="match-line" :data-state="matchState">{{ matchLabel }}</p>

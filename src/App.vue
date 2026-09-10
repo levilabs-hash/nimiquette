@@ -21,11 +21,11 @@ type AppView = 'send' | 'receipt' | 'receipt-open'
 type TrailStep = 'intent' | 'payment' | 'acknowledgment' | 'receipt'
 type SendPhase = 'intent' | 'payment' | 'sent'
 
-const TRAIL_STEPS: { id: TrailStep; label: string }[] = [
-  { id: 'intent', label: 'Intent' },
-  { id: 'payment', label: 'Payment' },
-  { id: 'acknowledgment', label: 'Acknowledgment' },
-  { id: 'receipt', label: 'Receipt' },
+const TRAIL_STEPS: { id: TrailStep; label: string; title: string }[] = [
+  { id: 'intent', label: 'Intent', title: 'Intent' },
+  { id: 'payment', label: 'Payment', title: 'Payment' },
+  { id: 'acknowledgment', label: 'Ack', title: 'Acknowledgment' },
+  { id: 'receipt', label: 'Receipt', title: 'Receipt' },
 ]
 
 const isConnecting = ref(true)
@@ -79,7 +79,7 @@ const walletSummary = computed(() => {
 
 const walletPill = computed(() => {
   if (isConnecting.value || providerStatus.value === 'connecting') {
-    return { state: 'connecting', label: 'Looking for Nimiq Pay' }
+    return { state: 'connecting', label: 'Connecting' }
   }
 
   if (providerStatus.value === 'unavailable') {
@@ -123,7 +123,7 @@ const walletHint = computed(() => {
   }
 
   if (walletConnected.value && consensusEstablished.value === true) {
-    return 'This wallet is connected and ready to send or acknowledge a payment.'
+    return null
   }
 
   if (walletConnected.value) {
@@ -131,7 +131,7 @@ const walletHint = computed(() => {
   }
 
   if (providerStatus.value === 'unavailable') {
-    return 'Nimiquette needs to run inside Nimiq Pay to connect a wallet. Open it from Mini Apps, then you can send or acknowledge a payment.'
+    return null
   }
 
   return null
@@ -362,15 +362,16 @@ async function connectWallet(): Promise<void> {
         Nimiquette records why.
       </p>
       <p class="purpose">
-        Add social meaning and recipient acknowledgment to Nimiq payments.
+        Social meaning and recipient acknowledgment for Nimiq payments.
       </p>
     </header>
 
-    <ol class="flow-trail" aria-label="Nimiquette flow">
+    <ol class="flow-trail" aria-label="Intent, Payment, Acknowledgment, Receipt">
       <li
         v-for="(item, index) in TRAIL_STEPS"
         :key="item.id"
         :data-state="trailState(item.id)"
+        :aria-label="item.title"
         :aria-current="trailState(item.id) === 'current' ? 'step' : undefined"
       >
         <span class="flow-index" aria-hidden="true">{{ index + 1 }}</span>
@@ -378,10 +379,10 @@ async function connectWallet(): Promise<void> {
       </li>
     </ol>
 
-    <nav class="role-switch" aria-label="Nimiquette views">
+    <nav class="mode-switch" aria-label="Send or receipt">
       <button
         type="button"
-        class="action send-nav"
+        class="mode-tab"
         :aria-pressed="view === 'send'"
         @click="showSend"
       >
@@ -389,7 +390,7 @@ async function connectWallet(): Promise<void> {
       </button>
       <button
         type="button"
-        class="action secondary receipt-nav"
+        class="mode-tab"
         :aria-pressed="view !== 'send'"
         @click="showReceiptView"
       >
@@ -397,7 +398,12 @@ async function connectWallet(): Promise<void> {
       </button>
     </nav>
 
-    <section class="card wallet-bar" aria-live="polite">
+    <section
+      class="card wallet-bar"
+      aria-live="polite"
+      :aria-busy="isConnecting || providerStatus === 'connecting'"
+      :data-connecting="isConnecting || providerStatus === 'connecting' ? 'true' : undefined"
+    >
       <div class="card-header">
         <h2>Wallet</h2>
         <span class="status" :data-state="walletPill.state">{{ walletPill.label }}</span>
@@ -462,7 +468,7 @@ async function connectWallet(): Promise<void> {
         :acknowledgment="homepageReceiptState"
       >
         <p class="message">
-          Open the receipt to acknowledge this payment or copy the share link.
+          Open the receipt to acknowledge it or copy the share link.
         </p>
         <button type="button" class="action" @click="openReceiptScreen">
           Open receipt
@@ -474,7 +480,7 @@ async function connectWallet(): Promise<void> {
           <h2>{{ receipt ? 'Open another receipt' : 'Open a receipt' }}</h2>
         </div>
         <p class="message">
-          Paste a Nimiquette receipt link. A transaction hash alone is not enough, because this Mini App cannot fetch transactions from the chain.
+          Paste a Nimiquette receipt link. A transaction hash alone is not enough.
         </p>
         <label class="field">
           <span>Receipt link</span>

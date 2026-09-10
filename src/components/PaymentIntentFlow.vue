@@ -50,7 +50,7 @@ const recipientError = computed(() => {
     return null
   }
 
-  return parsedRecipient.value ? null : 'Enter a valid Nimiq address, such as NQ07 0000 0000 0000 0000 0000 0000 0000 0000.'
+  return parsedRecipient.value ? null : 'Enter a valid Nimiq address.'
 })
 
 const canReview = computed(() => (
@@ -255,7 +255,7 @@ async function requestPayment(): Promise<void> {
     </button>
   </ReceiptPreview>
 
-  <section v-else class="card" :class="{ 'intent-form': step === 'create' }">
+  <section v-else class="card" :class="{ 'intent-form': step === 'create', 'review-card': step === 'review' }">
     <template v-if="step === 'create'">
       <div class="card-header">
         <h2>Payment intent</h2>
@@ -263,7 +263,7 @@ async function requestPayment(): Promise<void> {
       </div>
 
       <p class="message">
-        Start with why this payment exists. Then add the amount, who should receive it, and an optional note.
+        Choose why this payment exists, then add the amount and recipient.
       </p>
 
       <fieldset class="field">
@@ -286,7 +286,7 @@ async function requestPayment(): Promise<void> {
 
       <label class="field amount-field">
         <span>Amount</span>
-        <span class="field-hint">How much to send, up to 5 decimal places.</span>
+        <span class="field-hint">Enter the amount in NIM.</span>
         <div class="amount-input">
           <input
             v-model="amountInput"
@@ -313,7 +313,7 @@ async function requestPayment(): Promise<void> {
             Paste
           </button>
         </div>
-        <span class="field-hint">The Nimiq address that should receive this payment.</span>
+        <span class="field-hint">Nimiq address that should receive this payment.</span>
         <textarea
           id="recipient-input"
           v-model="recipientInput"
@@ -332,7 +332,7 @@ async function requestPayment(): Promise<void> {
       <div class="field message-field">
         <label>
           <span>Message <em>optional</em></span>
-          <span class="field-hint">This note becomes part of the shared receipt, so the recipient can see why the payment was sent.</span>
+          <span class="field-hint">Shown on the shared receipt.</span>
           <textarea
             v-model="messageInput"
             class="message-input"
@@ -376,11 +376,11 @@ async function requestPayment(): Promise<void> {
       </div>
 
       <p class="result-hero">
-        {{ intentType }}
-        <span>{{ parsedAmount?.displayNim }} NIM</span>
+        <span class="hero-kicker">{{ intentType }}</span>
+        <span class="hero-amount">{{ parsedAmount?.displayNim }} <span>NIM</span></span>
       </p>
       <p class="message">
-        Check these details. Approving will ask Nimiq Pay to send the NIM. Going back lets you edit the intent.
+        Confirm these details. Nimiq Pay will ask you to approve the payment.
       </p>
 
       <dl class="facts">
@@ -403,11 +403,11 @@ async function requestPayment(): Promise<void> {
       </dl>
 
       <p v-if="!canSend" class="detail" data-tone="calm">
-        Connect your Nimiq wallet above before requesting the payment.
+        Connect your Nimiq wallet above before sending.
       </p>
 
       <p v-else-if="networkNotReady" class="detail" data-tone="calm">
-        The wallet is still syncing with the Nimiq network. Wait until consensus is established, then send.
+        The wallet is still syncing. Wait until it is ready, then send.
       </p>
 
       <p v-if="sendStatus === 'sending'" class="detail" data-tone="calm">
