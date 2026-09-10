@@ -402,10 +402,6 @@ async function requestPayment(): Promise<void> {
         </div>
       </dl>
 
-      <p class="quiet-note">
-        For Testnet development, long-press Settings for 10 seconds, then use Get free NIM.
-      </p>
-
       <p v-if="!canSend" class="detail" data-tone="calm">
         Connect your Nimiq wallet above before requesting the payment.
       </p>
