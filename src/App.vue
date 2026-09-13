@@ -24,7 +24,7 @@ type SendPhase = 'intent' | 'payment' | 'sent'
 const TRAIL_STEPS: { id: TrailStep; label: string; title: string }[] = [
   { id: 'intent', label: 'Intent', title: 'Intent' },
   { id: 'payment', label: 'Payment', title: 'Payment' },
-  { id: 'acknowledgment', label: 'Ack', title: 'Acknowledgment' },
+  { id: 'acknowledgment', label: 'Acknowledge', title: 'Acknowledgment' },
   { id: 'receipt', label: 'Receipt', title: 'Receipt' },
 ]
 

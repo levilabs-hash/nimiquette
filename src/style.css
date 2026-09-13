@@ -148,9 +148,9 @@ body {
 }
 
 .flow-label {
-  font-size: 0.66rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
   line-height: 1.15;
   white-space: nowrap;
 }
@@ -941,7 +941,7 @@ dd {
   }
 
   .flow-label {
-    font-size: 0.62rem;
+    font-size: 0.56rem;
   }
 
   .status {
@@ -957,7 +957,7 @@ dd {
   }
 
   .flow-label {
-    font-size: 0.7rem;
+    font-size: 0.66rem;
   }
 }
 
