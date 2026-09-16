@@ -69,7 +69,7 @@ const walletMatchLabel = computed(() => {
   }
 
   if (props.walletConnected) {
-    return 'The connected wallet is not the intended recipient. Acknowledgment stays disabled.'
+    return 'The connected wallet is not the intended recipient.'
   }
 
   return 'Connect the recipient wallet to acknowledge.'
@@ -85,7 +85,7 @@ function ackBlocker(): string | null {
   }
 
   if (!props.walletConnected) {
-    return 'Connect the recipient wallet above, then acknowledge this payment.'
+    return 'Connect your wallet to continue.'
   }
 
   if (networkNotReady.value) {
@@ -111,6 +111,31 @@ async function copyShareLink(): Promise<void> {
     shareLinkOpen.value = false
     copyState.value = 'manual'
   }
+}
+
+function isShareCancelled(error: unknown): boolean {
+  return error instanceof DOMException && error.name === 'AbortError'
+}
+
+async function shareReceipt(): Promise<void> {
+  const url = buildShareUrl(props.receipt)
+  shareLink.value = url
+  const title = `${props.receipt.payment.intent} · Nimiquette`
+  const text = `${props.receipt.payment.intent} · ${amountNim.value} NIM`
+
+  if (typeof navigator.share === 'function') {
+    try {
+      await navigator.share({ title, text, url })
+      return
+    }
+    catch (error) {
+      if (isShareCancelled(error)) {
+        return
+      }
+    }
+  }
+
+  await copyShareLink()
 }
 
 async function acknowledge(): Promise<void> {
@@ -154,7 +179,7 @@ async function acknowledge(): Promise<void> {
   catch (error) {
     if (isUserRejection(error)) {
       ackStatus.value = 'cancelled'
-      ackError.value = 'Acknowledgment was cancelled. No signature was created. You can try again when you are ready.'
+      ackError.value = 'Acknowledgment cancelled.'
       return
     }
 
@@ -188,9 +213,21 @@ async function acknowledge(): Promise<void> {
       <span class="hero-kicker">{{ receipt.payment.intent }}</span>
       <span class="hero-amount">{{ amountNim }} <span>NIM</span></span>
     </p>
-    <p class="message">
-      {{ acknowledgmentBound ? 'The recipient acknowledged this payment.' : 'Share this receipt so the recipient can acknowledge it.' }}
+    <p v-if="paymentMessage.length > 0" class="receipt-quote">
+      “{{ paymentMessage }}”
     </p>
+
+    <dl class="receipt-parties">
+      <div class="stack">
+        <dt>From</dt>
+        <dd class="break">{{ shortenNimiqAddress(receipt.payment.sender) }}</dd>
+      </div>
+      <div class="stack">
+        <dt>To</dt>
+        <dd class="break">{{ shortenNimiqAddress(receipt.payment.recipient) }}</dd>
+      </div>
+    </dl>
+
     <p class="quiet-note">
       Nimiquette does not fetch or independently confirm this transaction from the chain.
     </p>
@@ -199,7 +236,7 @@ async function acknowledge(): Promise<void> {
       <summary>
         <span class="details-copy">
           <span class="details-title">Receipt details</span>
-          <span class="details-hint">Sender, recipient, message, and transaction hash</span>
+          <span class="details-hint">Full addresses, message, and transaction hash</span>
         </span>
       </summary>
       <dl class="facts">
@@ -237,6 +274,10 @@ async function acknowledge(): Promise<void> {
     <section class="receipt-block">
       <h3>Recipient acknowledgment</h3>
 
+      <p v-if="!acknowledgmentBound" class="message">
+        The recipient can acknowledge this payment through Nimiq Pay.
+      </p>
+
       <p
         v-if="!acknowledgmentBound"
         class="match-line"
@@ -258,9 +299,9 @@ async function acknowledge(): Promise<void> {
 
       <template v-if="acknowledgmentBound && receipt.ack">
         <div class="ack-success">
-          <p class="ack-success-title">Acknowledged</p>
+          <p class="ack-success-title">✓ Acknowledged</p>
           <p class="message">
-            Signed with Nimiq Pay. The signature is bound to this payment’s hash and details.
+            Signed with Nimiq Pay.
           </p>
           <dl class="facts">
             <div class="stack">
@@ -297,7 +338,7 @@ async function acknowledge(): Promise<void> {
           Nimiq Pay will ask you to sign. Nimiquette never sees private keys.
         </p>
         <p v-else class="message">
-          Connect the recipient wallet, then acknowledge. Nimiquette never sees private keys.
+          Connect the recipient wallet, then acknowledge.
         </p>
 
         <p v-if="ackBlocker()" class="detail" data-tone="calm">
@@ -318,14 +359,19 @@ async function acknowledge(): Promise<void> {
           :disabled="!canAcknowledge"
           @click="acknowledge"
         >
-          {{ ackStatus === 'requesting' ? 'Waiting for approval…' : 'Acknowledge this payment' }}
+          {{ ackStatus === 'requesting' ? 'Waiting for approval…' : 'Acknowledge payment' }}
         </button>
       </template>
     </section>
 
-    <button type="button" class="action secondary copy-cta" @click="copyShareLink">
-      {{ copyState === 'copied' ? '✓ Receipt link copied' : 'Copy receipt link' }}
-    </button>
+    <div class="share-actions">
+      <button type="button" class="action" @click="shareReceipt">
+        Share receipt
+      </button>
+      <button type="button" class="action secondary copy-cta" @click="copyShareLink">
+        {{ copyState === 'copied' ? 'Copied' : 'Copy receipt link' }}
+      </button>
+    </div>
     <details
       v-if="copyState === 'manual'"
       class="share-link-details"

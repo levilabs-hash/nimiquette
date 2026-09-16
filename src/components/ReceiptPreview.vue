@@ -45,14 +45,14 @@ const matchState = computed(() => {
 
 const matchLabel = computed(() => {
   if (props.acknowledgment === 'complete') {
-    return 'Acknowledgment complete'
+    return 'Acknowledged'
   }
 
   if (props.acknowledgment === 'mismatch') {
     return 'Acknowledgment does not match'
   }
 
-  return 'Acknowledgment pending'
+  return 'Acknowledge pending'
 })
 </script>
 

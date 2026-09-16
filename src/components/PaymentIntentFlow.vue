@@ -50,7 +50,7 @@ const recipientError = computed(() => {
     return null
   }
 
-  return parsedRecipient.value ? null : 'Enter a valid Nimiq address.'
+  return parsedRecipient.value ? null : 'Enter a valid recipient address.'
 })
 
 const canReview = computed(() => (
@@ -71,7 +71,7 @@ const reviewHint = computed(() => {
 
   if (!parsedAmount.value) {
     if (amountInput.value.trim().length === 0) {
-      return 'Enter how much NIM to send.'
+      return 'Enter a valid amount.'
     }
 
     return amountIssue.value
@@ -80,9 +80,7 @@ const reviewHint = computed(() => {
   }
 
   if (!parsedRecipient.value) {
-    return recipientInput.value.trim().length === 0
-      ? 'Enter the recipient’s Nimiq address.'
-      : 'That address is not a valid Nimiq address.'
+    return 'Enter a valid recipient address.'
   }
 
   return null
@@ -213,7 +211,7 @@ async function requestPayment(): Promise<void> {
   catch (error) {
     if (isUserRejection(error)) {
       sendStatus.value = 'cancelled'
-      sendError.value = 'The payment was cancelled. No NIM was sent. You can review the intent and try again.'
+      sendError.value = 'Payment cancelled.'
       return
     }
 
@@ -251,7 +249,7 @@ async function requestPayment(): Promise<void> {
       class="action secondary"
       @click="resetIntent"
     >
-      Create another intent
+        Create another payment
     </button>
   </ReceiptPreview>
 
@@ -263,11 +261,11 @@ async function requestPayment(): Promise<void> {
       </div>
 
       <p class="message">
-        Choose why this payment exists, then add the amount and recipient.
+        Give your payment some context.
       </p>
 
       <fieldset class="field">
-        <legend>Why are you sending this?</legend>
+        <legend>Why are you sending this payment?</legend>
         <div class="intent-grid">
           <button
             v-for="intent in INTENT_TYPES"
@@ -275,13 +273,14 @@ async function requestPayment(): Promise<void> {
             type="button"
             class="intent-option"
             :aria-pressed="intentType === intent"
+            :title="INTENT_HINTS[intent]"
             @click="intentType = intent"
           >
             <span class="intent-dot" aria-hidden="true" />
             <span>{{ intent }}</span>
           </button>
         </div>
-        <p v-if="intentType" class="field-hint">{{ INTENT_HINTS[intentType] }}</p>
+        <p v-if="intentType" class="intent-selected-hint">{{ INTENT_HINTS[intentType] }}</p>
       </fieldset>
 
       <label class="field amount-field">
@@ -380,7 +379,7 @@ async function requestPayment(): Promise<void> {
         <span class="hero-amount">{{ parsedAmount?.displayNim }} <span>NIM</span></span>
       </p>
       <p class="message">
-        Confirm these details. Nimiq Pay will ask you to approve the payment.
+        Nimiq Pay will ask you to approve this payment.
       </p>
 
       <dl class="facts">
@@ -403,7 +402,7 @@ async function requestPayment(): Promise<void> {
       </dl>
 
       <p v-if="!canSend" class="detail" data-tone="calm">
-        Connect your Nimiq wallet above before sending.
+        Connect your wallet to continue.
       </p>
 
       <p v-else-if="networkNotReady" class="detail" data-tone="calm">
@@ -424,7 +423,7 @@ async function requestPayment(): Promise<void> {
         :disabled="!canRequestPayment"
         @click="requestPayment"
       >
-        {{ sendStatus === 'sending' ? 'Waiting for approval…' : 'Send NIM with this intent' }}
+        {{ sendStatus === 'sending' ? 'Waiting for approval…' : 'Send a payment' }}
       </button>
       <button
         type="button"

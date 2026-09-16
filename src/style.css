@@ -525,6 +525,41 @@ dd {
   vertical-align: 0.08em;
 }
 
+.receipt-quote {
+  margin: 0.15rem 0 0.85rem;
+  color: var(--navy);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.receipt-parties {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0.15rem 0 0;
+}
+
+.receipt-parties div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--line);
+}
+
+.receipt-parties dt {
+  color: var(--calm);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.receipt-parties dd {
+  margin: 0;
+  font-weight: 700;
+  text-align: left;
+}
+
 .receipt-block {
   margin-top: 1.15rem;
   padding-top: 0.15rem;
@@ -558,6 +593,7 @@ dd {
   font-weight: 600;
   font-size: 0.95rem;
   line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .wallet-address-row {
@@ -763,8 +799,18 @@ dd {
   margin-top: 1rem;
 }
 
+.share-actions {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1.1rem;
+}
+
+.share-actions .action {
+  margin-top: 0;
+}
+
 .receipt .copy-cta {
-  margin-top: 1rem;
+  margin-top: 0;
 }
 
 .share-link-details {
@@ -824,6 +870,17 @@ dd {
 .intent-form .intent-option[aria-pressed='true'] .intent-dot {
   background: var(--navy);
   border-color: var(--navy);
+}
+
+.intent-selected-hint {
+  margin: 0.55rem 0 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.9rem;
+  background: rgb(233 178 19 / 16%);
+  color: var(--navy);
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
 .intent-grid .intent-option:last-child:nth-child(odd) {

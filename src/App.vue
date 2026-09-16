@@ -116,7 +116,7 @@ const walletPill = computed(() => {
 
 const walletHint = computed(() => {
   if (walletConnected.value && consensusEstablished.value === false) {
-    return 'Nimiquette is waiting for Nimiq consensus. Sending and acknowledgment stay paused until the wallet finishes syncing.'
+    return 'Sending and acknowledgment stay paused until the wallet finishes syncing.'
   }
 
   if (walletConnected.value && walletStateError.value) {
@@ -128,7 +128,7 @@ const walletHint = computed(() => {
   }
 
   if (walletConnected.value) {
-    return 'This wallet is connected. Nimiquette has not confirmed Nimiq consensus yet. You can still continue.'
+    return 'This wallet is connected. Sync status is still being checked.'
   }
 
   if (providerStatus.value === 'unavailable') {
@@ -321,7 +321,7 @@ async function initializeProvider(): Promise<void> {
       consensusEstablished.value = consensus
     }
     catch {
-      walletStateError.value = 'Could not check whether the wallet has network consensus. Nimiq Pay will still ask you to approve each action.'
+      walletStateError.value = 'Could not check whether the wallet is ready. Nimiq Pay will still ask you to approve each action.'
     }
   }
   catch {
@@ -508,7 +508,7 @@ async function connectWallet(): Promise<void> {
         :acknowledgment="homepageReceiptState"
       >
         <p class="message">
-          Open the receipt to acknowledge it or copy the share link.
+          Open the receipt to acknowledge it or share it.
         </p>
         <button type="button" class="action" @click="openReceiptScreen">
           Open receipt
@@ -529,7 +529,7 @@ async function connectWallet(): Promise<void> {
             rows="4"
             autocomplete="off"
             spellcheck="false"
-            placeholder="https://…/#r=… or the receipt payload"
+            placeholder="https://…/#r=…"
           />
         </label>
         <p v-if="receiptInputError" class="detail" data-tone="alert">
