@@ -113,31 +113,6 @@ async function copyShareLink(): Promise<void> {
   }
 }
 
-function isShareCancelled(error: unknown): boolean {
-  return error instanceof DOMException && error.name === 'AbortError'
-}
-
-async function shareReceipt(): Promise<void> {
-  const url = buildShareUrl(props.receipt)
-  shareLink.value = url
-  const title = `${props.receipt.payment.intent} · Nimiquette`
-  const text = `${props.receipt.payment.intent} · ${amountNim.value} NIM`
-
-  if (typeof navigator.share === 'function') {
-    try {
-      await navigator.share({ title, text, url })
-      return
-    }
-    catch (error) {
-      if (isShareCancelled(error)) {
-        return
-      }
-    }
-  }
-
-  await copyShareLink()
-}
-
 async function acknowledge(): Promise<void> {
   if (!canAcknowledge.value || !matchingRecipient.value) {
     return
@@ -365,9 +340,6 @@ async function acknowledge(): Promise<void> {
     </section>
 
     <div class="share-actions">
-      <button type="button" class="action" @click="shareReceipt">
-        Share receipt
-      </button>
       <button type="button" class="action secondary copy-cta" @click="copyShareLink">
         {{ copyState === 'copied' ? 'Copied' : 'Copy receipt link' }}
       </button>
